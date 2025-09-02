@@ -2,6 +2,7 @@ use std::ops::Sub;
 use crate::color::Color;
 use crate::hittable::{HitRecord, Hittable, HittableList};
 use crate::hittable::sphere::Sphere;
+use crate::interval::Interval;
 use crate::vector::{Point3, Vector3};
 
 pub struct Ray {
@@ -31,7 +32,7 @@ impl Ray {
 
     pub fn color(&self, world: &HittableList) -> Color {
         let mut rec = HitRecord::new();
-        if world.hit(&self, 0.0001, f64::INFINITY, &mut rec) {
+        if world.hit(&self, Interval::new(0.0001, f64::INFINITY), &mut rec) {
             return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
         }
 

@@ -1,10 +1,11 @@
 pub mod sphere;
 
+use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, ray: &Ray, t: Interval, rec: &mut HitRecord) -> bool;
 }
 
 #[derive(Copy, Clone)]
@@ -52,13 +53,13 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+    pub fn hit(&self, ray: &Ray, t: Interval, rec: &mut HitRecord) -> bool {
         let mut hit_anything = false;
-        let mut closest_so_far = t_max;
+        let mut closest_so_far = t.max;
 
         for object in &self.objects {
             let mut temp_rec = HitRecord::new();
-            if object.hit(ray, t_min, closest_so_far, &mut temp_rec) {
+            if object.hit(ray, Interval::new(t.min, closest_so_far), &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec;

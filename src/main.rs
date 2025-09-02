@@ -11,6 +11,7 @@ mod color;
 mod ray;
 mod vector;
 mod hittable;
+mod interval;
 
 #[tokio::main]
 async fn main() -> Result<()> {
