@@ -190,8 +190,8 @@ impl Vector3 {
         }
     }
 
-    pub fn unit_vector(v: &Vector3) -> Vector3 {
-        v.clone() / v.length()
+    pub fn unit_vector(&self) -> Vector3 {
+        *self / self.length()
     }
 }
 

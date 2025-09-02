@@ -7,6 +7,7 @@ use crate::vector::Vector3;
 mod color;
 mod ray;
 mod vector;
+mod hittable;
 
 #[tokio::main]
 async fn main() -> Result<()> {
