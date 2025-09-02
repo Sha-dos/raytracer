@@ -23,7 +23,7 @@ async fn main() -> Result<()> {
 
     let focal_length = 1.0;
     let viewport_height = 2.0;
-    let viewport_width = viewport_height * (image_width / image_height) as f64;
+    let viewport_width = aspect_ratio * viewport_height;
     let camera_center = Vector3::new(0., 0., 0.);
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges.
