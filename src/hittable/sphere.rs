@@ -14,32 +14,33 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, mut rec: HitRecord) -> bool {
-        let oc = self.center -  ray.get_origin();
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let oc = ray.get_origin() - self.center;
         let a = ray.get_direction().length_squared();
-        let h = Vector3::dot(&ray.get_direction(), &oc);
+        let half_b = Vector3::dot(&oc, &ray.get_direction());
         let c = oc.length_squared() - self.radius * self.radius;
-        
-        let discriminant = h * h - a * c;
-        if discriminant < 0. {
+
+        let discriminant = half_b * half_b - a * c;
+        if discriminant < 0.0 {
             return false;
         }
-        
+
         let sqrtd = discriminant.sqrt();
-        let mut root = (h - sqrtd) / a;
+
+        let mut root = (-half_b - sqrtd) / a;
         if root <= t_min || t_max <= root {
-            root = (h + sqrtd) / a;
+            root = (-half_b + sqrtd) / a;
             if root <= t_min || t_max <= root {
                 return false;
             }
         }
-        
+
         rec.t = root;
         rec.p = ray.at(rec.t);
-        
+
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(ray, &outward_normal);
-        
+
         true
     }
 }
