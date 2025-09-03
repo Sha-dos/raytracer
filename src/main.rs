@@ -5,8 +5,7 @@ use anyhow::Result;
 use crate::camera::Camera;
 use crate::hittable::HittableList;
 use crate::hittable::sphere::Sphere;
-use crate::ray::Ray;
-use crate::vector::{Point3, Vector3};
+use crate::vector::Point3;
 
 mod color;
 mod ray;

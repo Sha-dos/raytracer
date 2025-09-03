@@ -3,6 +3,8 @@ use tokio::io::AsyncWriteExt;
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
+use rand::random_range;
+use crate::color::Color;
 use crate::hittable::HittableList;
 
 pub struct Camera {
@@ -13,6 +15,8 @@ pub struct Camera {
     pixel00_loc: Point3,
     pixel_delta_u: Vector3,
     pixel_delta_v: Vector3,
+    samples_per_pixel: i32,
+    pixel_samples_scale: f64,
 }
 
 impl Camera {
@@ -41,6 +45,9 @@ impl Camera {
         let viewport_upper_left = center
             - Vector3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+        
+        let samples_per_pixel = 10;
+        let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
 
         Self {
             aspect_ratio,
@@ -50,6 +57,8 @@ impl Camera {
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            samples_per_pixel,
+            pixel_samples_scale,
         }
     }
     
@@ -60,15 +69,34 @@ impl Camera {
 
         for j in 0..self.image_height {
             for i in 0..self.image_width {
-                let pixel_center = self.pixel00_loc + (i as f64 * self.pixel_delta_u) + (j as f64 * self.pixel_delta_v);
-                let ray_direction = pixel_center - self.center;
-                let r = Ray::new(self.center, ray_direction);
+                let mut pixel_color = Color::new(0.,0.,0.);
+                
+                for _ in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i as f64, j as f64);
+                    pixel_color += r.color(&world);
+                }
 
-                let pixel_color = Ray::color(&r, &world);
-                pixel_color.write_color(&mut file).await?;
+                (self.pixel_samples_scale * pixel_color).write_color(&mut file).await?;
             }
         }
         
         Ok(())
+    }
+    
+    fn get_ray(&self, i: f64, j: f64) -> Ray {
+        let offset = Self::sample_square();
+        let pixel_sample = self.pixel00_loc
+            + ((i + offset.x()) * self.pixel_delta_u)
+            + ((j + offset.y()) * self.pixel_delta_v);
+
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray::new(ray_origin, ray_direction)
+    }
+
+    fn sample_square() -> Vector3 {
+        // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
+        Vector3::new(random_range(0f64..1.) - 0.5, random_range(0f64..1.) - 0.5, 0.)
     }
 }

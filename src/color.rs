@@ -1,17 +1,19 @@
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use anyhow::Result;
+use crate::interval::Interval;
 use crate::vector::Vector3;
 
 pub type Color = Vector3;
 
 impl Color {
     pub async fn write_color(&self, file: &mut File) -> Result<()> {
-        let ir = (255.999 * self.x()) as i32;
-        let ig = (255.999 * self.y()) as i32;
-        let ib = (255.999 * self.z()) as i32;
+        let intensity = Interval::new(0., 0.999);
+        let r = (256. * intensity.clamp(self.x())) as i32;
+        let g = (256. * intensity.clamp(self.y())) as i32;
+        let b = (256. * intensity.clamp(self.z())) as i32;
         
-        file.write(format!("{} {} {}\n", ir, ig, ib).as_bytes()).await?;
+        file.write(format!("{} {} {}\n", r, g, b).as_bytes()).await?;
         
         Ok(())
     }
