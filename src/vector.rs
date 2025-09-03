@@ -193,6 +193,41 @@ impl Vector3 {
     pub fn unit_vector(&self) -> Vector3 {
         *self / self.length()
     }
+
+    pub fn random() -> Vector3 {
+        Vector3 {
+            x: random_range(0f64..1f64),
+            y: random_range(0f64..1f64),
+            z: random_range(0f64..1f64),
+        }
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vector3 {
+        Vector3 {
+            x: random_range(min..max),
+            y: random_range(min..max),
+            z: random_range(min..max),
+        }
+    }
+
+    pub fn random_unit_vector() -> Vector3 {
+        loop {
+            let p = Vector3::random_range(-1., 1.);
+            let lensq = p.length_squared();
+            if 1e-160 < lensq && lensq <= 1.0 {
+                return p / lensq.sqrt();
+            }
+        }
+    }
+    
+    pub fn random_on_hemisphere(normal: &Vector3) -> Vector3 {
+        let on_unit_sphere = Vector3::random_unit_vector();
+        if Vector3::dot(&on_unit_sphere, normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        }
+    }
 }
 
 // Alias for geometric clarity
@@ -200,6 +235,8 @@ pub type Point3 = Vector3;
 
 // Display implementation
 use std::fmt;
+use rand::random_range;
+
 impl fmt::Display for Vector3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.x, self.y, self.z)

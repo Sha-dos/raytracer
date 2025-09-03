@@ -30,10 +30,17 @@ impl Ray {
         self.origin + t * self.direction
     }
 
-    pub fn color(&self, world: &HittableList) -> Color {
+    pub fn color(&self, world: &HittableList, depth: i32) -> Color {
+        // If we've exceeded the ray bounce limit, no more light is gathered
+        if depth <= 0 {
+            return Color::new(0.0, 0.0, 0.0);
+        }
+
         let mut rec = HitRecord::new();
-        if world.hit(&self, Interval::new(0.0001, f64::INFINITY), &mut rec) {
-            return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+        if world.hit(&self, Interval::new(0.001, f64::INFINITY), &mut rec) {
+            // return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+            
+            return 0.5 * Ray::new(rec.p, Vector3::random_on_hemisphere(&rec.normal)).color(world, depth - 1);
         }
 
         let unit_direction = self.get_direction().unit_vector();

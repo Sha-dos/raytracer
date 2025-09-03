@@ -45,8 +45,8 @@ impl Camera {
         let viewport_upper_left = center
             - Vector3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
-        
-        let samples_per_pixel = 10;
+
+        let samples_per_pixel = 100;
         let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
 
         Self {
@@ -61,28 +61,29 @@ impl Camera {
             pixel_samples_scale,
         }
     }
-    
+
     pub async fn render(&self, world: HittableList) -> Result<()> {
         let mut file = File::create("image.ppm").await?;
 
         file.write(format!("P3\n{} {}\n255\n", &self.image_width, &self.image_height).as_bytes()).await?;
 
         for j in 0..self.image_height {
+            println!("\rScanlines remaining: {} ", self.image_height - j);
             for i in 0..self.image_width {
                 let mut pixel_color = Color::new(0.,0.,0.);
-                
+
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i as f64, j as f64);
-                    pixel_color += r.color(&world);
+                    pixel_color += r.color(&world, 50);
                 }
 
                 (self.pixel_samples_scale * pixel_color).write_color(&mut file).await?;
             }
         }
-        
+
         Ok(())
     }
-    
+
     fn get_ray(&self, i: f64, j: f64) -> Ray {
         let offset = Self::sample_square();
         let pixel_sample = self.pixel00_loc
