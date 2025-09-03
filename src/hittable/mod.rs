@@ -1,6 +1,8 @@
 pub mod sphere;
 
+use std::sync::Arc;
 use crate::interval::Interval;
+use crate::material::{DefaultMaterial, Material};
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 
@@ -8,12 +10,12 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, t: Interval, rec: &mut HitRecord) -> bool;
 }
 
-#[derive(Copy, Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vector3,
     pub t: f64,
     pub front_face: bool,
+    pub mat: Arc<dyn Material>,
 }
 
 impl HitRecord {
@@ -23,6 +25,7 @@ impl HitRecord {
             normal: Vector3::new(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: false,
+            mat: Arc::new(DefaultMaterial::new())
         }
     }
 

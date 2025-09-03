@@ -1,3 +1,5 @@
+use std::io::Write;
+use std::io::stdout;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use crate::ray::Ray;
@@ -69,6 +71,8 @@ impl Camera {
 
         for j in 0..self.image_height {
             println!("\rScanlines remaining: {} ", self.image_height - j);
+            stdout().flush()?;
+            
             for i in 0..self.image_width {
                 let mut pixel_color = Color::new(0.,0.,0.);
 
