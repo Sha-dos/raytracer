@@ -38,9 +38,8 @@ impl Ray {
 
         let mut rec = HitRecord::new();
         if world.hit(&self, Interval::new(0.001, f64::INFINITY), &mut rec) {
-            // return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
-            
-            return 0.5 * Ray::new(rec.p, Vector3::random_on_hemisphere(&rec.normal)).color(world, depth - 1);
+            let direction = rec.normal + Vector3::random_unit_vector();
+            return 0.5 * Ray::new(rec.p, direction).color(world, depth - 1);
         }
 
         let unit_direction = self.get_direction().unit_vector();
