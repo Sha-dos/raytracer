@@ -70,7 +70,7 @@ impl Camera {
         file.write(format!("P3\n{} {}\n255\n", &self.image_width, &self.image_height).as_bytes()).await?;
 
         for j in 0..self.image_height {
-            println!("\rScanlines remaining: {} ", self.image_height - j);
+            print!("\rScanlines remaining: {} ", self.image_height - j);
             stdout().flush()?;
             
             for i in 0..self.image_width {
