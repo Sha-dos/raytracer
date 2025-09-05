@@ -244,6 +244,15 @@ impl Vector3 {
             -on_unit_sphere
         }
     }
+    
+    pub fn random_in_unit_disk() -> Vector3 {
+        loop {
+            let p = Vector3::new(random_range(-1f64..1f64), random_range(-1f64..1f64), 0.0);
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
+    }
 }
 
 // Alias for geometric clarity

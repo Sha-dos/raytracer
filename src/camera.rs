@@ -18,7 +18,9 @@ pub struct Camera {
     pub lookfrom: Point3,       // Point camera is looking from
     pub lookat: Point3,         // Point camera is looking at
     pub vup: Vector3,           // Camera-relative "up" direction
-    
+    pub defocus_angle: f64,     // Variation angle of rays through each pixel
+    pub focus_dist: f64,        // Distance to perfect focus plane
+
     image_height: i32,
     pixel_samples_scale: f64,
     center: Point3,
@@ -28,6 +30,8 @@ pub struct Camera {
     u: Vector3,                 // Camera frame basis vectors
     v: Vector3,
     w: Vector3,
+    defocus_u: Vector3,
+    defocus_v: Vector3,
 }
 
 impl Camera {
@@ -41,7 +45,9 @@ impl Camera {
             lookfrom: Point3::new(0.0, 0.0, 0.0),
             lookat: Point3::new(0.0, 0.0, -1.0),
             vup: Vector3::new(0.0, 1.0, 0.0),
-            
+            defocus_angle: 0.0,
+            focus_dist: 0.0,
+
             // These will be calculated in initialize()
             image_height: 0,
             pixel_samples_scale: 0.0,
@@ -52,6 +58,8 @@ impl Camera {
             u: Vector3::new(0.0, 0.0, 0.0),
             v: Vector3::new(0.0, 0.0, 0.0),
             w: Vector3::new(0.0, 0.0, 0.0),
+            defocus_u: Vector3::new(0.0, 0.0, 0.0),
+            defocus_v: Vector3::new(0.0, 0.0, 0.0),
         }
     }
 
@@ -64,10 +72,9 @@ impl Camera {
         self.center = self.lookfrom;
 
         // Determine viewport dimensions
-        let focal_length = (self.lookfrom - self.lookat).length();
         let theta = self.vfov.to_radians();
         let h = (theta / 2.0).tan();
-        let viewport_height = 2.0 * h * focal_length;
+        let viewport_height = 2.0 * h * self.focus_dist;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame
@@ -84,13 +91,20 @@ impl Camera {
         self.pixel_delta_v = viewport_v / self.image_height as f64;
 
         // Calculate the location of the upper left pixel
-        let viewport_upper_left = self.center - (focal_length * self.w) - (viewport_u / 2.0) - (viewport_v / 2.0);
+        let viewport_upper_left = self.center - (self.focus_dist * self.w) - (viewport_u / 2.0) - (viewport_v / 2.0);
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
+        
+        // auto defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
+        //         defocus_disk_u = u * defocus_radius;
+        //         defocus_disk_v = v * defocus_radius;
+        let defocus_radius = self.focus_dist * (self.defocus_angle.to_radians() / 2.0).tan();
+        self.defocus_u = self.u * defocus_radius;
+        self.defocus_v = self.v * defocus_radius;
     }
 
     pub async fn render(&mut self, world: HittableList) -> Result<()> {
         self.initialize();
-        
+
         let mut file = File::create("image.ppm").await?;
 
         file.write(format!("P3\n{} {}\n255\n", &self.image_width, &self.image_height).as_bytes()).await?;
@@ -98,7 +112,7 @@ impl Camera {
         for j in 0..self.image_height {
             print!("\rScanlines remaining: {} ", self.image_height - j);
             stdout().flush()?;
-            
+
             for i in 0..self.image_width {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
@@ -121,7 +135,11 @@ impl Camera {
             + ((i + offset.x()) * self.pixel_delta_u)
             + ((j + offset.y()) * self.pixel_delta_v);
 
-        let ray_origin = self.center;
+        let ray_origin = if self.defocus_angle <= 0. {
+            self.center
+        } else {
+            self.defocus_disk_sample()
+        };
         let ray_direction = pixel_sample - ray_origin;
 
         Ray::new(ray_origin, ray_direction)
@@ -130,5 +148,10 @@ impl Camera {
     fn sample_square() -> Vector3 {
         // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square
         Vector3::new(random_range(0.0..1.0) - 0.5, random_range(0.0..1.0) - 0.5, 0.0)
+    }
+    
+    fn defocus_disk_sample(&self) -> Point3 {
+        let p = Vector3::random_in_unit_disk();
+        self.center + p.x() * self.defocus_u + p.y() * self.defocus_v
     }
 }

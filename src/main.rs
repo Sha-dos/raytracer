@@ -41,6 +41,10 @@ async fn main() -> Result<()> {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.vfov = 20.;
+
+    camera.defocus_angle = 10.0;
+    camera.focus_dist    = 3.4;
     
     camera.lookfrom = Point3::new(-2., 2., 1.);
     camera.lookat = Point3::new(0., 0., -1.);
