@@ -1,6 +1,4 @@
 use std::sync::Arc;
-use tokio::fs::File;
-use tokio::io::{AsyncWriteExt};
 use anyhow::Result;
 use crate::camera::Camera;
 use crate::color::Color;

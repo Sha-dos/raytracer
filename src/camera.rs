@@ -94,9 +94,6 @@ impl Camera {
         let viewport_upper_left = self.center - (self.focus_dist * self.w) - (viewport_u / 2.0) - (viewport_v / 2.0);
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
         
-        // auto defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
-        //         defocus_disk_u = u * defocus_radius;
-        //         defocus_disk_v = v * defocus_radius;
         let defocus_radius = self.focus_dist * (self.defocus_angle.to_radians() / 2.0).tan();
         self.defocus_u = self.u * defocus_radius;
         self.defocus_v = self.v * defocus_radius;
