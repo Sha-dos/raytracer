@@ -16,6 +16,7 @@ mod hittable;
 mod interval;
 mod camera;
 mod material;
+mod aabb;
 
 #[tokio::main]
 async fn main() -> Result<()> {
