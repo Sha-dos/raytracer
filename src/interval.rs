@@ -29,4 +29,12 @@ impl Interval {
             value
         }
     }
+    
+    pub fn expand(&self, delta: f64) -> Self {
+        let padding = delta / 2.;
+        Self {
+            min: self.min - padding,
+            max: self.max + padding,
+        }
+    }
 }
