@@ -18,7 +18,12 @@ impl BVHNode {
     }
     
     pub fn new_from_objects(objects: &[Arc<dyn Hittable>], start: usize, end: usize) -> BVHNode {
-        let axis = random_range(0..=2);
+        let mut bbox = AABB::new_empty();
+        for object in objects.iter().take(end).skip(start) {
+            bbox = AABB::new_from_aabbs(&bbox, &object.bbox());
+        }
+        
+        let axis = bbox.longest_axis();
         
         let comparator = match axis {
             0 => Self::box_x_compare,
@@ -49,8 +54,6 @@ impl BVHNode {
             
             (left_node as Arc<dyn Hittable>, right_node as Arc<dyn Hittable>)
         };
-        
-        let bbox = AABB::new_from_aabbs(left.bbox(), right.bbox());
         
         Self { left, right, bbox }
     }
