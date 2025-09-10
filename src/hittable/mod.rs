@@ -1,4 +1,5 @@
 pub mod sphere;
+pub mod bvh_node;
 
 use std::sync::Arc;
 use crate::aabb::AABB;
@@ -8,7 +9,7 @@ use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t: Interval, rec: &mut HitRecord) -> bool;
+    fn hit(&self, ray: &Ray, t: &mut Interval, rec: &mut HitRecord) -> bool;
     fn bbox(&self) -> &AABB;
 }
 
@@ -66,7 +67,7 @@ impl HittableList {
 
         for object in &self.objects {
             let mut temp_rec = HitRecord::new();
-            if object.hit(ray, Interval::new(t.min, closest_so_far), &mut temp_rec) {
+            if object.hit(ray, &mut Interval::new(t.min, closest_so_far), &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec;

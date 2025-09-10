@@ -2,6 +2,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use crate::camera::Camera;
 use crate::color::Color;
+use crate::hittable::bvh_node::BVHNode;
 use crate::hittable::HittableList;
 use crate::hittable::sphere::Sphere;
 use crate::material::dielectric::Dielectric;
@@ -33,6 +34,8 @@ async fn main() -> Result<()> {
     world.add(Arc::new(Sphere::new(Point3::new(-1.0, 0.0, -1.0), 0.5, material_left)));
     world.add(Arc::new(Sphere::new(Point3::new(-1.0, 0.0, -1.0),  0.4, material_bubble)));
     world.add(Arc::new(Sphere::new(Point3::new( 1.0, 0.0, -1.0), 0.5, material_right)));
+    
+    // world.add(Arc::new(BVHNode::new(&world)));
 
     let mut camera = Camera::new();
     
