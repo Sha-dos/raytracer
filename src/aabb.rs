@@ -35,6 +35,25 @@ impl AABB {
         Self { x, y, z }
     }
     
+    pub fn new_from_aabbs(box0: &AABB, box1: &AABB) -> Self {
+        let x = Interval::new_enclosing_intervals(&box0.x, &box1.x);
+        let y = Interval::new_enclosing_intervals(&box0.y, &box1.y);
+        let z = Interval::new_enclosing_intervals(&box0.z, &box1.z);
+        
+        Self { x, y, z }
+    }
+    
+    pub fn new_empty() -> Self {
+        let inf = f64::INFINITY;
+        let ninf = f64::NEG_INFINITY;
+        
+        Self {
+            x: Interval::new(inf, ninf),
+            y: Interval::new(inf, ninf),
+            z: Interval::new(inf, ninf),
+        }
+    }
+    
     pub fn axis_interval(&self, axis: i32) -> &Interval {
         match axis {
             1 => &self.y,

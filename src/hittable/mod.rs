@@ -1,6 +1,7 @@
 pub mod sphere;
 
 use std::sync::Arc;
+use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::material::{DefaultMaterial, Material};
 use crate::ray::Ray;
@@ -8,6 +9,7 @@ use crate::vector::{Point3, Vector3};
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, t: Interval, rec: &mut HitRecord) -> bool;
+    fn bbox(&self) -> &AABB;
 }
 
 pub struct HitRecord {
@@ -40,16 +42,18 @@ impl HitRecord {
 }
 
 pub struct HittableList {
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Arc<dyn Hittable>>,
+    bbox: AABB,
 }
 
 impl HittableList {
     pub fn new() -> Self {
-        Self { objects: Vec::new() }
+        Self { objects: Vec::new(), bbox: AABB::new_empty() }
     }
 
-    pub fn add(&mut self, object: Box<dyn Hittable>) {
-        self.objects.push(object);
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
+        self.objects.push(object.clone());
+        self.bbox = AABB::new_from_aabbs(&self.bbox, &object.bbox());
     }
 
     pub fn clear(&mut self) {

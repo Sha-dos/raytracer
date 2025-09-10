@@ -1,9 +1,7 @@
-use std::ops::Sub;
 use crate::color::Color;
 use crate::hittable::{HitRecord, Hittable, HittableList};
-use crate::hittable::sphere::Sphere;
 use crate::interval::Interval;
-use crate::vector::{Point3, Vector3};
+use crate::vector::Vector3;
 
 pub struct Ray {
     origin: Vector3,
