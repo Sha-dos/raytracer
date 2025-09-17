@@ -1,11 +1,11 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
-use crate::hittable::bvh_node::BVHNode;
 use crate::hittable::sphere::Sphere;
 use crate::material::dielectric::Dielectric;
 use crate::material::lambertian::Lambertian;
 use crate::material::metal::Metal;
+use crate::texture::checker::CheckerTexture;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use std::sync::Arc;
@@ -17,13 +17,18 @@ mod hittable;
 mod interval;
 mod material;
 mod ray;
+mod texture;
 mod vector;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut world = HittableList::new();
 
-    let material_ground = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_ground = Arc::new(CheckerTexture::new_colors(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
     let material_center = Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
     let material_left = Arc::new(Dielectric::new(1.5));
     let material_bubble = Arc::new(Dielectric::new(1. / 1.5));
@@ -32,7 +37,7 @@ async fn main() -> Result<()> {
     world.add(Arc::new(Sphere::new(
         Point3::new(0.0, -100.5, -1.0),
         100.0,
-        material_ground,
+        Arc::new(Lambertian::new_texture(material_ground)),
     )));
     world.add(Arc::new(Sphere::new(
         Point3::new(0.0, 0.0, -1.2),

@@ -1,16 +1,25 @@
+use std::sync::Arc;
 use crate::color::Color;
 use crate::hittable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture::solid::SolidTexture;
+use crate::texture::Texture;
 use crate::vector::Vector3;
 
 pub struct Lambertian {
-    albedo: Color,
+    tex: Arc<dyn Texture>,
 }
 
 impl Lambertian {
     pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+        Self { 
+            tex: Arc::new(SolidTexture::new(albedo)),
+        }
+    }
+    
+    pub fn new_texture(tex: Arc<dyn Texture>) -> Self {
+        Self { tex }
     }
 }
 
@@ -29,7 +38,7 @@ impl Material for Lambertian {
         }
 
         *scattered = Ray::new(hit_record.p, scatter_direction);
-        *attenuation = self.albedo;
+        *attenuation = self.tex.value(hit_record.u, hit_record.v, &hit_record.p);
         true
     }
 }
