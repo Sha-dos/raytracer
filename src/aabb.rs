@@ -86,7 +86,7 @@ impl AABB {
             }
         }
         
-        false
+        true
     }
     
     pub fn longest_axis(&self) -> i32 {

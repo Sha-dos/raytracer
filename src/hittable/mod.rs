@@ -47,6 +47,29 @@ pub struct HittableList {
     bbox: AABB,
 }
 
+impl Hittable for HittableList {
+    fn hit(&self, ray: &Ray, t: &mut Interval, rec: &mut HitRecord) -> bool {
+        let mut hit_anything = false;
+        let mut closest_so_far = t.max;
+
+        for object in &self.objects {
+            let mut temp_rec = HitRecord::new();
+            let mut temp_interval = Interval::new(t.min, closest_so_far);
+            if object.hit(ray, &mut temp_interval, &mut temp_rec) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                *rec = temp_rec;
+            }
+        }
+
+        hit_anything
+    }
+
+    fn bbox(&self) -> &AABB {
+        &self.bbox
+    }
+}
+
 impl HittableList {
     pub fn new() -> Self {
         Self { objects: Vec::new(), bbox: AABB::new_empty() }
@@ -67,7 +90,8 @@ impl HittableList {
 
         for object in &self.objects {
             let mut temp_rec = HitRecord::new();
-            if object.hit(ray, &mut Interval::new(t.min, closest_so_far), &mut temp_rec) {
+            let mut temp_interval = Interval::new(t.min, closest_so_far);
+            if object.hit(ray, &mut temp_interval, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec;
