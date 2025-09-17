@@ -94,15 +94,15 @@ impl Hittable for BVHNode {
 
         let mut temp_rec = HitRecord::new();
         let mut hit_left = self.left.hit(ray, t, &mut temp_rec);
-        
+
         let mut right_t = t;
         if hit_left {
             right_t.max = temp_rec.t;
         }
-        
+
         let mut right_rec = HitRecord::new();
         let hit_right = self.right.hit(ray, &mut right_t, &mut right_rec);
-        
+
         // Choose the closest hit
         if hit_left && hit_right {
             if temp_rec.t < right_rec.t {

@@ -1,12 +1,12 @@
-pub mod sphere;
 pub mod bvh_node;
+pub mod sphere;
 
-use std::sync::Arc;
 use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::material::{DefaultMaterial, Material};
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
+use std::sync::Arc;
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, t: &mut Interval, rec: &mut HitRecord) -> bool;
@@ -28,7 +28,7 @@ impl HitRecord {
             normal: Vector3::new(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: false,
-            mat: Arc::new(DefaultMaterial::new())
+            mat: Arc::new(DefaultMaterial::new()),
         }
     }
 
@@ -72,7 +72,10 @@ impl Hittable for HittableList {
 
 impl HittableList {
     pub fn new() -> Self {
-        Self { objects: Vec::new(), bbox: AABB::new_empty() }
+        Self {
+            objects: Vec::new(),
+            bbox: AABB::new_empty(),
+        }
     }
 
     pub fn add(&mut self, object: Arc<dyn Hittable>) {

@@ -1,10 +1,10 @@
-use std::sync::Arc;
 use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
+use std::sync::Arc;
 
 pub struct Sphere {
     center: Point3,
@@ -16,11 +16,12 @@ pub struct Sphere {
 impl Sphere {
     pub fn new(center: Point3, radius: f64, mat: Arc<dyn Material>) -> Sphere {
         let rvec = Vector3::new(radius, radius, radius);
-        
-        Sphere { center,
+
+        Sphere {
+            center,
             radius,
             mat,
-            bbox: AABB::new_points(center - rvec, center + rvec)
+            bbox: AABB::new_points(center - rvec, center + rvec),
         }
     }
 }
@@ -56,9 +57,8 @@ impl Hittable for Sphere {
 
         true
     }
-    
+
     fn bbox(&self) -> &AABB {
         &self.bbox
     }
 }
-

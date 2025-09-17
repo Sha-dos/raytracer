@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
         0.5,
         material_right,
     )));
-    
+
     // let bvh_world = Arc::new(BVHNode::new(&world));
     // world.clear();
     // world.add(bvh_world);

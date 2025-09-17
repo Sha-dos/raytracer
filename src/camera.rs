@@ -1,25 +1,25 @@
-use std::io::Write;
-use std::io::stdout;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
+use crate::color::Color;
+use crate::hittable::HittableList;
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use rand::random_range;
-use crate::color::Color;
-use crate::hittable::HittableList;
+use std::io::Write;
+use std::io::stdout;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: i32,
     pub samples_per_pixel: i32,
     pub max_depth: i32,
-    pub vfov: f64,              // Vertical field of view in degrees
-    pub lookfrom: Point3,       // Point camera is looking from
-    pub lookat: Point3,         // Point camera is looking at
-    pub vup: Vector3,           // Camera-relative "up" direction
-    pub defocus_angle: f64,     // Variation angle of rays through each pixel
-    pub focus_dist: f64,        // Distance to perfect focus plane
+    pub vfov: f64,          // Vertical field of view in degrees
+    pub lookfrom: Point3,   // Point camera is looking from
+    pub lookat: Point3,     // Point camera is looking at
+    pub vup: Vector3,       // Camera-relative "up" direction
+    pub defocus_angle: f64, // Variation angle of rays through each pixel
+    pub focus_dist: f64,    // Distance to perfect focus plane
 
     image_height: i32,
     pixel_samples_scale: f64,
@@ -27,7 +27,7 @@ pub struct Camera {
     pixel00_loc: Point3,
     pixel_delta_u: Vector3,
     pixel_delta_v: Vector3,
-    u: Vector3,                 // Camera frame basis vectors
+    u: Vector3, // Camera frame basis vectors
     v: Vector3,
     w: Vector3,
     defocus_u: Vector3,
@@ -65,7 +65,11 @@ impl Camera {
 
     pub fn initialize(&mut self) {
         self.image_height = (self.image_width as f64 / self.aspect_ratio) as i32;
-        self.image_height = if self.image_height < 1 { 1 } else { self.image_height };
+        self.image_height = if self.image_height < 1 {
+            1
+        } else {
+            self.image_height
+        };
 
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
 
@@ -83,7 +87,7 @@ impl Camera {
         self.v = Vector3::cross(&self.w, &self.u);
 
         // Calculate the vectors across the horizontal and down the vertical viewport edges
-        let viewport_u = viewport_width * self.u;    // Vector across viewport horizontal edge
+        let viewport_u = viewport_width * self.u; // Vector across viewport horizontal edge
         let viewport_v = viewport_height * (-self.v); // Vector down viewport vertical edge
 
         // Calculate the horizontal and vertical delta vectors from pixel to pixel
@@ -91,9 +95,10 @@ impl Camera {
         self.pixel_delta_v = viewport_v / self.image_height as f64;
 
         // Calculate the location of the upper left pixel
-        let viewport_upper_left = self.center - (self.focus_dist * self.w) - (viewport_u / 2.0) - (viewport_v / 2.0);
+        let viewport_upper_left =
+            self.center - (self.focus_dist * self.w) - (viewport_u / 2.0) - (viewport_v / 2.0);
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
-        
+
         let defocus_radius = self.focus_dist * (self.defocus_angle.to_radians() / 2.0).tan();
         self.defocus_u = self.u * defocus_radius;
         self.defocus_v = self.v * defocus_radius;
@@ -104,7 +109,8 @@ impl Camera {
 
         let mut file = File::create("image.ppm").await?;
 
-        file.write(format!("P3\n{} {}\n255\n", &self.image_width, &self.image_height).as_bytes()).await?;
+        file.write(format!("P3\n{} {}\n255\n", &self.image_width, &self.image_height).as_bytes())
+            .await?;
 
         for j in 0..self.image_height {
             print!("\rScanlines remaining: {} ", self.image_height - j);
@@ -118,7 +124,9 @@ impl Camera {
                     pixel_color += r.color(&world, self.max_depth);
                 }
 
-                (self.pixel_samples_scale * pixel_color).write_color(&mut file).await?;
+                (self.pixel_samples_scale * pixel_color)
+                    .write_color(&mut file)
+                    .await?;
             }
         }
 
@@ -144,9 +152,13 @@ impl Camera {
 
     fn sample_square() -> Vector3 {
         // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square
-        Vector3::new(random_range(0.0..1.0) - 0.5, random_range(0.0..1.0) - 0.5, 0.0)
+        Vector3::new(
+            random_range(0.0..1.0) - 0.5,
+            random_range(0.0..1.0) - 0.5,
+            0.0,
+        )
     }
-    
+
     fn defocus_disk_sample(&self) -> Point3 {
         let p = Vector3::random_in_unit_disk();
         self.center + p.x() * self.defocus_u + p.y() * self.defocus_v

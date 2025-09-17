@@ -24,7 +24,11 @@ impl Vector3 {
 
     // Negation
     pub fn neg(&self) -> Self {
-        Vector3 { x: -self.x, y: -self.y, z: -self.z }
+        Vector3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
     }
 
     // Indexing (immutable)
@@ -74,16 +78,16 @@ impl Vector3 {
     pub fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
-    
+
     pub fn near_zero(&self) -> bool {
         let s = 1e-8;
         self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
     }
-    
+
     pub fn reflect(v: &Vector3, n: &Vector3) -> Vector3 {
         *v - 2.0 * Vector3::dot(v, n) * (*n)
     }
-    
+
     pub fn refract(uv: &Vector3, n: &Vector3, etai_over_etat: f64) -> Vector3 {
         let cos_theta = f64::min(Vector3::dot(&(-*uv), n), 1.0);
         let r_out_perp = etai_over_etat * (*uv + cos_theta * (*n));
@@ -93,47 +97,71 @@ impl Vector3 {
 }
 
 // Operator overloads and utility functions
-use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, MulAssign, DivAssign, Index, IndexMut};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 impl Neg for Vector3 {
     type Output = Self;
     fn neg(self) -> Self::Output {
-        Vector3 { x: -self.x, y: -self.y, z: -self.z }
+        Vector3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
     }
 }
 
 impl Add for Vector3 {
     type Output = Self;
     fn add(self, other: Self) -> Self::Output {
-        Vector3 { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z }
+        Vector3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
     }
 }
 
 impl Sub for Vector3 {
     type Output = Self;
     fn sub(self, other: Self) -> Self::Output {
-        Vector3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z }
+        Vector3 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
     }
 }
 
 impl Mul for Vector3 {
     type Output = Self;
     fn mul(self, other: Self) -> Self::Output {
-        Vector3 { x: self.x * other.x, y: self.y * other.y, z: self.z * other.z }
+        Vector3 {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
     }
 }
 
 impl Mul<f64> for Vector3 {
     type Output = Self;
     fn mul(self, t: f64) -> Self::Output {
-        Vector3 { x: self.x * t, y: self.y * t, z: self.z * t }
+        Vector3 {
+            x: self.x * t,
+            y: self.y * t,
+            z: self.z * t,
+        }
     }
 }
 
 impl Mul<Vector3> for f64 {
     type Output = Vector3;
     fn mul(self, v: Vector3) -> Self::Output {
-        Vector3 { x: self * v.x, y: self * v.y, z: self * v.z }
+        Vector3 {
+            x: self * v.x,
+            y: self * v.y,
+            z: self * v.z,
+        }
     }
 }
 
@@ -235,7 +263,7 @@ impl Vector3 {
             }
         }
     }
-    
+
     pub fn random_on_hemisphere(normal: &Vector3) -> Vector3 {
         let on_unit_sphere = Vector3::random_unit_vector();
         if Vector3::dot(&on_unit_sphere, normal) > 0.0 {
@@ -244,7 +272,7 @@ impl Vector3 {
             -on_unit_sphere
         }
     }
-    
+
     pub fn random_in_unit_disk() -> Vector3 {
         loop {
             let p = Vector3::new(random_range(-1f64..1f64), random_range(-1f64..1f64), 0.0);
@@ -259,8 +287,8 @@ impl Vector3 {
 pub type Point3 = Vector3;
 
 // Display implementation
-use std::fmt;
 use rand::random_range;
+use std::fmt;
 
 impl fmt::Display for Vector3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

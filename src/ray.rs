@@ -5,15 +5,12 @@ use crate::vector::Vector3;
 
 pub struct Ray {
     origin: Vector3,
-    direction: Vector3
+    direction: Vector3,
 }
 
 impl Ray {
     pub fn new(origin: Vector3, direction: Vector3) -> Self {
-        Self {
-            origin,
-            direction
-        }
+        Self { origin, direction }
     }
 
     pub fn get_origin(&self) -> Vector3 {
@@ -35,15 +32,18 @@ impl Ray {
         }
 
         let mut rec = HitRecord::new();
-        
+
         if world.hit(&self, Interval::new(0.001, f64::INFINITY), &mut rec) {
             let mut scattered = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0));
             let mut attenuation = Color::new(0.0, 0.0, 0.0);
-            
-            if rec.mat.scatter(self, &rec, &mut attenuation, &mut scattered) {
+
+            if rec
+                .mat
+                .scatter(self, &rec, &mut attenuation, &mut scattered)
+            {
                 return attenuation * scattered.color(world, depth - 1);
             }
-            
+
             return Color::new(0.0, 0.0, 0.0);
         }
 
