@@ -1,5 +1,6 @@
 pub mod solid;
 pub mod checker;
+pub mod image;
 
 use crate::color::Color;
 use crate::vector::Point3;

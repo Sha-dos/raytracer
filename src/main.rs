@@ -9,6 +9,8 @@ use crate::texture::checker::CheckerTexture;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use std::sync::Arc;
+use crate::image::Image;
+use crate::texture::image::ImageTexture;
 
 mod aabb;
 mod camera;
@@ -19,17 +21,23 @@ mod material;
 mod ray;
 mod texture;
 mod vector;
+mod image;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut world = HittableList::new();
+    
+    // auto earth_texture = make_shared<image_texture>("earthmap.jpg");
+    //     auto earth_surface = make_shared<lambertian>(earth_texture);
+    //     auto globe = make_shared<sphere>(point3(0,0,0), 2, earth_surface);
 
     let material_ground = Arc::new(CheckerTexture::new_colors(
         0.32,
         Color::new(0.2, 0.3, 0.1),
         Color::new(0.9, 0.9, 0.9),
     ));
-    let material_center = Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
+    let earth_texture = Arc::new(ImageTexture::new(Image::from_file("earthmap.jpg")));
+    let material_center = Arc::new(Lambertian::new_texture(earth_texture));
     let material_left = Arc::new(Dielectric::new(1.5));
     let material_bubble = Arc::new(Dielectric::new(1. / 1.5));
     let material_right = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.));
@@ -72,7 +80,7 @@ async fn main() -> Result<()> {
     camera.max_depth = 50;
     camera.vfov = 20.;
 
-    camera.defocus_angle = 10.0;
+    camera.defocus_angle = 1.0;
     camera.focus_dist = 3.4;
 
     camera.lookfrom = Point3::new(-2., 2., 1.);
