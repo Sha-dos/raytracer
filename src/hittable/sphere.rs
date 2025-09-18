@@ -1,10 +1,10 @@
-use std::f64::consts::PI;
 use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
+use std::f64::consts::PI;
 use std::sync::Arc;
 
 pub struct Sphere {
@@ -25,7 +25,7 @@ impl Sphere {
             bbox: AABB::new_points(center - rvec, center + rvec),
         }
     }
-    
+
     fn get_sphere_uv(p: &Point3, u: &mut f64, v: &mut f64) {
         let theta = (-p.y()).acos();
         let phi = (-p.z()).atan2(p.x()) + PI;

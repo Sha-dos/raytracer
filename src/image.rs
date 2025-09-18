@@ -22,11 +22,13 @@ impl Image {
     /// Searches in multiple locations similar to the C++ version
     pub fn from_file(image_filename: &str) -> Self {
         let mut image = Self::new();
-        
+
         // Hunt for the image file in some likely locations
         let locations = [
             // Check RTW_IMAGES environment variable first
-            env::var("RT_IMAGES").ok().map(|dir| format!("{}/{}", dir, image_filename)),
+            env::var("RT_IMAGES")
+                .ok()
+                .map(|dir| format!("{}/{}", dir, image_filename)),
             // Then check current directory and relative paths
             Some(image_filename.to_string()),
             Some(format!("images/{}", image_filename)),
@@ -83,7 +85,7 @@ impl Image {
         }
 
         let data = self.data.as_ref().unwrap();
-        
+
         // Clamp coordinates to valid range
         let x = Self::clamp(x, 0, self.width as i32);
         let y = Self::clamp(y, 0, self.height as i32);

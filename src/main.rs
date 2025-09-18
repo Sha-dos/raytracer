@@ -2,31 +2,31 @@ use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
 use crate::hittable::sphere::Sphere;
+use crate::image::Image;
 use crate::material::dielectric::Dielectric;
 use crate::material::lambertian::Lambertian;
 use crate::material::metal::Metal;
 use crate::texture::checker::CheckerTexture;
+use crate::texture::image::ImageTexture;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use std::sync::Arc;
-use crate::image::Image;
-use crate::texture::image::ImageTexture;
 
 mod aabb;
 mod camera;
 mod color;
 mod hittable;
+mod image;
 mod interval;
 mod material;
 mod ray;
 mod texture;
 mod vector;
-mod image;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut world = HittableList::new();
-    
+
     // auto earth_texture = make_shared<image_texture>("earthmap.jpg");
     //     auto earth_surface = make_shared<lambertian>(earth_texture);
     //     auto globe = make_shared<sphere>(point3(0,0,0), 2, earth_surface);

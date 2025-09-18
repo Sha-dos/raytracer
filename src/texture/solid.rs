@@ -2,7 +2,7 @@ use crate::color::Color;
 use crate::texture::Texture;
 
 pub struct SolidTexture {
-    albedo: Color
+    albedo: Color,
 }
 
 impl SolidTexture {

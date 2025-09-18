@@ -1,6 +1,6 @@
 use crate::color::Color;
-use crate::texture::solid::SolidTexture;
 use crate::texture::Texture;
+use crate::texture::solid::SolidTexture;
 use crate::vector::Point3;
 
 pub struct CheckerTexture {
@@ -17,7 +17,7 @@ impl CheckerTexture {
             odd,
         }
     }
-    
+
     pub fn new_colors(scale: f64, even: Color, odd: Color) -> Self {
         Self {
             inv_scale: 1. / scale,
@@ -32,7 +32,7 @@ impl Texture for CheckerTexture {
         let x = (p.x() * self.inv_scale).floor() as i32;
         let y = (p.y() * self.inv_scale).floor() as i32;
         let z = (p.z() * self.inv_scale).floor() as i32;
-        
+
         if (x + y + z) % 2 == 0 {
             self.even.value(u, v, p)
         } else {

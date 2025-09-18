@@ -1,11 +1,11 @@
-use std::sync::Arc;
 use crate::color::Color;
 use crate::hittable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::texture::solid::SolidTexture;
 use crate::texture::Texture;
+use crate::texture::solid::SolidTexture;
 use crate::vector::Vector3;
+use std::sync::Arc;
 
 pub struct Lambertian {
     tex: Arc<dyn Texture>,
@@ -13,11 +13,11 @@ pub struct Lambertian {
 
 impl Lambertian {
     pub fn new(albedo: Color) -> Self {
-        Self { 
+        Self {
             tex: Arc::new(SolidTexture::new(albedo)),
         }
     }
-    
+
     pub fn new_texture(tex: Arc<dyn Texture>) -> Self {
         Self { tex }
     }
