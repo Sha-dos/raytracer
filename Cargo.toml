@@ -6,5 +6,5 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.99"
 rand = "0.9.2"
-tokio = { version = "1.47.1", features = ["full"] }
+num_cpus = "1.16"
 image = "0.25.8"

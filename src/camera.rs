@@ -6,15 +6,14 @@ use anyhow::Result;
 use rand::random_range;
 use std::io::Write;
 use std::io::stdout;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
-use tokio::spawn;
+use std::fs::File;
+use std::io::BufWriter;
 use crate::interval::Interval;
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use tokio::time::sleep;
+use std::thread;
 
 #[derive(Clone, Copy)]
 struct CameraData {
@@ -158,10 +157,10 @@ impl Camera {
         color_from_emission + color_from_scatter
     }
 
-    pub async fn render(&mut self, world: HittableList) -> Result<()> {
+    pub fn render(&mut self, world: HittableList) -> Result<()> {
         self.initialize();
 
-        let cores = std::thread::available_parallelism()?.get() as i32;
+        let cores = num_cpus::get() as i32;
 
         println!(
             "Rendering a {}x{} image with {} samples per pixel using {} cores",
@@ -197,7 +196,7 @@ impl Camera {
             self.image_width,
         ));
 
-        let mut tasks = Vec::new();
+        let mut handles = Vec::new();
 
         for (task_id, (start_row, end_row)) in task_ranges.into_iter().enumerate() {
             let pixels_clone = Arc::clone(&pixels);
@@ -220,7 +219,7 @@ impl Camera {
                 background: self.background,
             };
 
-            let task = spawn(async move {
+            let handle = thread::spawn(move || {
                 Self::render_slice(
                     camera_data,
                     world_clone,
@@ -229,39 +228,41 @@ impl Camera {
                     end_row,
                     task_id,
                     progress_clone,
-                ).await
+                )
             });
 
-            tasks.push(task);
+            handles.push(handle);
         }
 
-        // Progress monitoring task
+        // Progress monitoring in the main thread
         let progress_monitor = {
             let tracker_clone = Arc::clone(&progress_tracker);
-            spawn(async move {
+            thread::spawn(move || {
                 loop {
                     tracker_clone.print_progress();
-                    sleep(Duration::from_millis(500)).await;
+                    thread::sleep(Duration::from_millis(500));
                 }
             })
         };
 
-        for task in tasks {
-            task.await??;
+        for handle in handles {
+            handle.join().unwrap()?;
         }
 
-        progress_monitor.abort();
+        progress_monitor.thread().unpark(); // Stop the progress monitor
+
         progress_tracker.print_final();
 
         println!("\nWriting image to file...");
-        let mut file = File::create("image.ppm").await?;
-        file.write(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes()).await?;
+        let file = File::create("image.ppm")?;
+        let mut writer = BufWriter::new(file);
+        writer.write(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes())?;
 
-        let pixels_guard = pixels.lock().await;
+        let pixels_guard = pixels.lock().unwrap();
         for j in 0..self.image_height {
             for i in 0..self.image_width {
                 let pixel_index = (j * self.image_width + i) as usize;
-                pixels_guard[pixel_index].write_color(&mut file).await?;
+                pixels_guard[pixel_index].write_color(&mut writer)?;
             }
         }
 
@@ -298,8 +299,8 @@ impl Camera {
         let p = Vector3::random_in_unit_disk();
         self.center + p.x() * self.defocus_u + p.y() * self.defocus_v
     }
-    
-    async fn render_slice(
+
+    fn render_slice(
         camera_data: CameraData,
         world: Arc<HittableList>,
         pixels: Arc<Mutex<Vec<Color>>>,
@@ -324,7 +325,7 @@ impl Camera {
 
                 // Write to shared pixel buffer
                 {
-                    let mut pixels_guard = pixels.lock().await;
+                    let mut pixels_guard = pixels.lock().unwrap();
                     pixels_guard[pixel_index] = final_color;
                 }
 

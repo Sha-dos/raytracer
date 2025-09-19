@@ -29,21 +29,20 @@ mod texture;
 mod transform;
 mod vector;
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     match 5 {
-        1 => spheres().await?,
-        2 => quads().await?,
-        3 => simple_light().await?,
-        4 => cornell_box().await?,
-        5 => cornell_box_smoke().await?,
+        1 => spheres()?,
+        2 => quads()?,
+        3 => simple_light()?,
+        4 => cornell_box()?,
+        5 => cornell_box_smoke()?,
         _ => (),
     }
 
     Ok(())
 }
 
-async fn spheres() -> Result<()> {
+fn spheres() -> Result<()> {
     let mut world = HittableList::new();
 
     let material_ground = Arc::new(CheckerTexture::new_colors(
@@ -105,12 +104,12 @@ async fn spheres() -> Result<()> {
 
     camera.initialize();
 
-    camera.render(world).await?;
+    camera.render(world)?;
 
     Ok(())
 }
 
-async fn quads() -> Result<()> {
+fn quads() -> Result<()> {
     let mut world = HittableList::new();
 
     let back_green = Arc::new(Lambertian::new(Color::new(0.2, 1.0, 0.2)));
@@ -142,12 +141,12 @@ async fn quads() -> Result<()> {
 
     camera.initialize();
 
-    camera.render(world).await?;
+    camera.render(world)?;
 
     Ok(())
 }
 
-async fn simple_light() -> Result<()> {
+fn simple_light() -> Result<()> {
     let mut world = HittableList::new();
 
     let texture = Arc::new(NoiseTexture::new(5.));
@@ -191,12 +190,12 @@ async fn simple_light() -> Result<()> {
 
     camera.initialize();
 
-    camera.render(world).await?;
+    camera.render(world)?;
 
     Ok(())
 }
 
-async fn cornell_box() -> Result<()> {
+fn cornell_box() -> Result<()> {
     let mut world = HittableList::new();
 
     let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
@@ -288,12 +287,12 @@ async fn cornell_box() -> Result<()> {
 
     camera.initialize();
 
-    camera.render(world).await?;
+    camera.render(world)?;
 
     Ok(())
 }
 
-async fn cornell_box_smoke() -> Result<()> {
+fn cornell_box_smoke() -> Result<()> {
     let mut world = HittableList::new();
 
     let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
@@ -398,7 +397,7 @@ async fn cornell_box_smoke() -> Result<()> {
 
     camera.initialize();
 
-    camera.render(world).await?;
+    camera.render(world)?;
 
     Ok(())
 }

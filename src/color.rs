@@ -1,13 +1,13 @@
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use crate::interval::Interval;
 use crate::vector::Vector3;
 use anyhow::Result;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
 
 pub type Color = Vector3;
 
 impl Color {
-    pub async fn write_color(&self, file: &mut File) -> Result<()> {
+    pub fn write_color(&self, file: &mut BufWriter<File>) -> Result<()> {
         let intensity = Interval::new(0., 0.999);
 
         // Apply gamma correction
@@ -19,8 +19,7 @@ impl Color {
         let g = (256. * intensity.clamp(g)) as i32;
         let b = (256. * intensity.clamp(b)) as i32;
 
-        file.write(format!("{} {} {}\n", r, g, b).as_bytes())
-            .await?;
+        file.write(format!("{} {} {}\n", r, g, b).as_bytes())?;
 
         Ok(())
     }
