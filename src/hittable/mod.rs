@@ -1,4 +1,5 @@
 pub mod bvh_node;
+pub mod constant_medium;
 pub mod sphere;
 pub mod quad;
 pub mod rotate;

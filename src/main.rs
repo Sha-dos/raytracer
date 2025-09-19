@@ -1,6 +1,7 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
+use crate::hittable::constant_medium::ConstantMedium;
 use crate::hittable::quad::{Quad, create_box};
 use crate::hittable::rotate::{RotateX, RotateY, RotateZ};
 use crate::hittable::sphere::Sphere;
@@ -30,11 +31,12 @@ mod vector;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    match 4 {
+    match 5 {
         1 => spheres().await?,
         2 => quads().await?,
         3 => simple_light().await?,
         4 => cornell_box().await?,
+        5 => cornell_box_smoke().await?,
         _ => (),
     }
 
@@ -276,6 +278,116 @@ async fn cornell_box() -> Result<()> {
     camera.aspect_ratio = 1.0;
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+    camera.background = Color::new(0., 0., 0.);
+
+    camera.vfov = 40.;
+    camera.lookfrom = Point3::new(278., 278., -800.);
+    camera.lookat = Point3::new(278., 278., 0.);
+    camera.vup = Vector3::new(0., 1., 0.);
+
+    camera.initialize();
+
+    camera.render(world).await?;
+
+    Ok(())
+}
+
+async fn cornell_box_smoke() -> Result<()> {
+    let mut world = HittableList::new();
+
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(15., 15., 15.)));
+
+    // Left wall (green)
+    world.add(Arc::new(Quad::new(
+        Point3::new(555., 0., 0.),
+        Vector3::new(0., 555., 0.),
+        Vector3::new(0., 0., 555.),
+        green.clone(),
+    )));
+
+    // Right wall (red)
+    world.add(Arc::new(Quad::new(
+        Point3::new(0., 0., 0.),
+        Vector3::new(0., 555., 0.),
+        Vector3::new(0., 0., 555.),
+        red.clone(),
+    )));
+
+    // Floor (white)
+    world.add(Arc::new(Quad::new(
+        Point3::new(0., 0., 0.),
+        Vector3::new(555., 0., 0.),
+        Vector3::new(0., 0., 555.),
+        white.clone(),
+    )));
+
+    // Ceiling (white)
+    world.add(Arc::new(Quad::new(
+        Point3::new(555., 555., 555.),
+        Vector3::new(-555., 0., 0.),
+        Vector3::new(0., 0., -555.),
+        white.clone(),
+    )));
+
+    // Back wall (white)
+    world.add(Arc::new(Quad::new(
+        Point3::new(0., 0., 555.),
+        Vector3::new(555., 0., 0.),
+        Vector3::new(0., 555., 0.),
+        white.clone(),
+    )));
+
+    // Light source
+    world.add(Arc::new(Quad::new(
+        Point3::new(213., 554., 227.),
+        Vector3::new(130., 0., 0.),
+        Vector3::new(0., 0., 105.),
+        light.clone(),
+    )));
+
+    let tall_box_boundary = create_box(
+        Point3::new(265., 0., 295.),
+        Point3::new(430., 330., 460.),
+        white.clone(),
+    );
+
+    let mut rotated_tall_box = HittableList::new();
+    for object in tall_box_boundary.objects {
+        rotated_tall_box.add(Arc::new(RotateY::new(object, -18.0)));
+    }
+
+    world.add(Arc::new(ConstantMedium::from_color(
+        Arc::new(rotated_tall_box),
+        0.01,
+        Color::new(0.0, 0.0, 0.0),
+    )));
+
+    let short_box_boundary = create_box(
+        Point3::new(130., 0., 65.),
+        Point3::new(295., 165., 230.),
+        white.clone(),
+    );
+
+    let mut rotated_short_box = HittableList::new();
+    for object in short_box_boundary.objects {
+        rotated_short_box.add(Arc::new(RotateY::new(object, 15.0)));
+    }
+
+    world.add(Arc::new(ConstantMedium::from_color(
+        Arc::new(rotated_short_box),
+        0.01,
+        Color::new(1.0, 1.0, 1.0),
+    )));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 250;
     camera.max_depth = 50;
     camera.background = Color::new(0., 0., 0.);
 
