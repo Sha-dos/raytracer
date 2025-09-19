@@ -1,7 +1,7 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
-use crate::hittable::quad::Quad;
+use crate::hittable::quad::{Quad, create_box};
 use crate::hittable::sphere::Sphere;
 use crate::image::Image;
 use crate::material::dielectric::{Dielectric, DiffuseLight};
@@ -28,10 +28,11 @@ mod vector;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    match 3 {
+    match 4 {
         1 => spheres().await?,
         2 => quads().await?,
         3 => simple_light().await?,
+        4 => cornell_box().await?,
         _ => (),
     }
 
@@ -190,3 +191,75 @@ async fn simple_light() -> Result<()> {
 
     Ok(())
 }
+
+async fn cornell_box() -> Result<()> {
+    let mut world = HittableList::new();
+
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(15., 15., 15.)));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(-200., -200., -200.),
+        Vector3::new(400., 0., 0.),
+        Vector3::new(0., 0., 400.),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-200., -200., 200.),
+        Vector3::new(400., 0., 0.),
+        Vector3::new(0., 0., -400.),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-200., -200., -200.),
+        Vector3::new(0., 0., 400.),
+        Vector3::new(0., 200., 0.),
+        green.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(200., -200., -200.),
+        Vector3::new(0., 0., 400.),
+        Vector3::new(0., 200., 0.),
+        red.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-200., 200., -200.),
+        Vector3::new(400., 0., 0.),
+        Vector3::new(0., 0., 400.),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-200., -200., -200.),
+        Vector3::new(400., 0., 0.),
+        Vector3::new(0., 200., 0.),
+        white.clone(),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(-200., -200., -200.),
+        Vector3::new(0., 200., 0.),
+        Vector3::new(0., 0., 400.),
+        light.clone(),
+    )));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+    camera.background = Color::new(0., 0., 0.);
+
+    camera.vfov = 40.;
+    camera.lookfrom = Point3::new(278., 278., -800.);
+    camera.lookat = Point3::new(278., 278., 0.);
+    camera.vup = Vector3::new(0., 1., 0.);
+
+    camera.initialize();
+
+    camera.render(world).await?;
+
+    Ok(())
+}
+

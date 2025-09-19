@@ -1,6 +1,7 @@
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vector::Point3;
+use crate::vector::{Point3, Vector3};
+use std::ops::Add;
 
 pub struct AABB {
     x: Interval,
@@ -13,9 +14,9 @@ impl AABB {
         let mut x = x;
         let mut y = y;
         let mut z = z;
-        
+
         Self::pad_to_minimums(&mut x, &mut y, &mut z);
-        
+
         Self { x, y, z }
     }
 
@@ -116,12 +117,54 @@ impl AABB {
             2
         }
     }
-    
+
     fn pad_to_minimums(x: &mut Interval, y: &mut Interval, z: &mut Interval) {
         let delta = 0.0001;
-        
+
         if x.size() < delta { *x = x.expand(delta); }
         if y.size() < delta { *y = y.expand(delta); }
         if z.size() < delta { *z = z.expand(delta); }
+    }
+}
+
+// Implement AABB + Vector3 (translating AABB by a vector offset)
+impl Add<Vector3> for AABB {
+    type Output = AABB;
+
+    fn add(self, offset: Vector3) -> Self::Output {
+        AABB::new(
+            self.x + offset.x(),
+            self.y + offset.y(),
+            self.z + offset.z(),
+        )
+    }
+}
+
+// Implement &AABB + Vector3 (translating AABB reference by a vector offset)
+impl Add<Vector3> for &AABB {
+    type Output = AABB;
+
+    fn add(self, offset: Vector3) -> Self::Output {
+        AABB::new(
+            self.x + offset.x(),
+            self.y + offset.y(),
+            self.z + offset.z(),
+        )
+    }
+}
+
+impl Add<AABB> for Vector3 {
+    type Output = AABB;
+
+    fn add(self, bbox: AABB) -> Self::Output {
+        bbox + self
+    }
+}
+
+impl Add<&AABB> for Vector3 {
+    type Output = AABB;
+
+    fn add(self, bbox: &AABB) -> Self::Output {
+        bbox + self
     }
 }

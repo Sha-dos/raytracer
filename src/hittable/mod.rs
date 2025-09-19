@@ -2,8 +2,7 @@ pub mod bvh_node;
 pub mod sphere;
 pub mod quad;
 
-pub use quad::Quad;
-
+use std::ops::Add;
 use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::material::{DefaultMaterial, Material};
@@ -111,3 +110,40 @@ impl HittableList {
         hit_anything
     }
 }
+
+struct Translate {
+    object: Arc<dyn Hittable>,
+    offset: Vector3,
+    bbox: AABB,
+}
+
+impl Translate {
+    pub fn new(object: Arc<dyn Hittable>, offset: Vector3) -> Self {
+        let bbox = object.bbox() + offset;
+
+        Self {
+            object,
+            offset,
+            bbox
+        }
+    }
+}
+
+impl Hittable for Translate {
+    fn hit(&self, ray: &Ray, t: &mut Interval, rec: &mut HitRecord) -> bool {
+        let offset_ray = Ray::new(ray.get_origin() - self.offset, ray.get_direction());
+
+        if !self.object.hit(&offset_ray, t, rec) {
+            return false;
+        }
+
+        rec.p += self.offset;
+
+        true
+    }
+
+    fn bbox(&self) -> &AABB {
+        &self.bbox
+    }
+}
+
