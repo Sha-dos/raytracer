@@ -2,6 +2,7 @@ use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
 use crate::hittable::quad::{Quad, create_box};
+use crate::hittable::rotate::{RotateX, RotateY, RotateZ};
 use crate::hittable::sphere::Sphere;
 use crate::image::Image;
 use crate::material::dielectric::{Dielectric, DiffuseLight};
@@ -24,6 +25,7 @@ mod material;
 mod perlin;
 mod ray;
 mod texture;
+mod transform;
 mod vector;
 
 #[tokio::main]
@@ -200,48 +202,74 @@ async fn cornell_box() -> Result<()> {
     let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
     let light = Arc::new(DiffuseLight::from_color(Color::new(15., 15., 15.)));
 
+    // Left wall (green)
     world.add(Arc::new(Quad::new(
-        Point3::new(-200., -200., -200.),
-        Vector3::new(400., 0., 0.),
-        Vector3::new(0., 0., 400.),
-        white.clone(),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(-200., -200., 200.),
-        Vector3::new(400., 0., 0.),
-        Vector3::new(0., 0., -400.),
-        white.clone(),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(-200., -200., -200.),
-        Vector3::new(0., 0., 400.),
-        Vector3::new(0., 200., 0.),
+        Point3::new(555., 0., 0.),
+        Vector3::new(0., 555., 0.),
+        Vector3::new(0., 0., 555.),
         green.clone(),
     )));
+
+    // Right wall (red)
     world.add(Arc::new(Quad::new(
-        Point3::new(200., -200., -200.),
-        Vector3::new(0., 0., 400.),
-        Vector3::new(0., 200., 0.),
+        Point3::new(0., 0., 0.),
+        Vector3::new(0., 555., 0.),
+        Vector3::new(0., 0., 555.),
         red.clone(),
     )));
+
+    // Floor (white)
     world.add(Arc::new(Quad::new(
-        Point3::new(-200., 200., -200.),
-        Vector3::new(400., 0., 0.),
-        Vector3::new(0., 0., 400.),
+        Point3::new(0., 0., 0.),
+        Vector3::new(555., 0., 0.),
+        Vector3::new(0., 0., 555.),
         white.clone(),
     )));
+
+    // Ceiling (white)
     world.add(Arc::new(Quad::new(
-        Point3::new(-200., -200., -200.),
-        Vector3::new(400., 0., 0.),
-        Vector3::new(0., 200., 0.),
+        Point3::new(555., 555., 555.),
+        Vector3::new(-555., 0., 0.),
+        Vector3::new(0., 0., -555.),
         white.clone(),
     )));
+
+    // Back wall (white)
     world.add(Arc::new(Quad::new(
-        Point3::new(-200., -200., -200.),
-        Vector3::new(0., 200., 0.),
-        Vector3::new(0., 0., 400.),
+        Point3::new(0., 0., 555.),
+        Vector3::new(555., 0., 0.),
+        Vector3::new(0., 555., 0.),
+        white.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(213., 554., 227.),
+        Vector3::new(130., 0., 0.),
+        Vector3::new(0., 0., 105.),
         light.clone(),
     )));
+
+
+    let tall_box = create_box(
+        Point3::new(265., 0., 295.),
+        Point3::new(430., 330., 460.),
+        white.clone(),
+    );
+    let tall_box_objects = tall_box.objects;
+    for object in tall_box_objects {
+        world.add(Arc::new(RotateY::new(object, -18.0)));
+    }
+
+    let short_box = create_box(
+        Point3::new(130., 0., 65.),
+        Point3::new(295., 165., 230.),
+        white.clone(),
+    );
+    let short_box_objects = short_box.objects;
+    for object in short_box_objects {
+        let rotated_object = Arc::new(RotateY::new(object, 15.0));
+        world.add(rotated_object);
+    }
 
     let mut camera = Camera::new();
 
@@ -262,4 +290,3 @@ async fn cornell_box() -> Result<()> {
 
     Ok(())
 }
-

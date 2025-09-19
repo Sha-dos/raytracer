@@ -118,6 +118,14 @@ impl AABB {
         }
     }
 
+    pub fn min(&self) -> Point3 {
+        Point3::new(self.x.min, self.y.min, self.z.min)
+    }
+
+    pub fn max(&self) -> Point3 {
+        Point3::new(self.x.max, self.y.max, self.z.max)
+    }
+
     fn pad_to_minimums(x: &mut Interval, y: &mut Interval, z: &mut Interval) {
         let delta = 0.0001;
 

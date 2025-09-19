@@ -1,6 +1,7 @@
 pub mod bvh_node;
 pub mod sphere;
 pub mod quad;
+pub mod rotate;
 
 use std::ops::Add;
 use crate::aabb::AABB;
@@ -146,4 +147,3 @@ impl Hittable for Translate {
         &self.bbox
     }
 }
-
