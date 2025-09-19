@@ -12,7 +12,7 @@ use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 use std::sync::Arc;
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, t: &mut Interval, rec: &mut HitRecord) -> bool;
     fn bbox(&self) -> &AABB;
 }

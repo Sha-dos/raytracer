@@ -8,7 +8,7 @@ use crate::hittable::HitRecord;
 use crate::ray::Ray;
 use crate::vector::Point3;
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn scatter(
         &self,
         ray_in: &Ray,
