@@ -2,11 +2,10 @@ use crate::color::Color;
 use crate::hittable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture::Texture;
+use crate::texture::solid::SolidTexture;
 use crate::vector::Vector3;
 use std::sync::Arc;
-use rand::random_range;
-use crate::texture::solid::SolidTexture;
-use crate::texture::Texture;
 
 /// Isotropic material for volumetric scattering (used in constant medium)
 pub struct Isotropic {
@@ -34,7 +33,9 @@ impl Material for Isotropic {
         scattered: &mut Ray,
     ) -> bool {
         *scattered = Ray::new(hit_record.p, Vector3::random_unit_vector());
-        *attenuation = self.texture.value(hit_record.u, hit_record.v, &hit_record.p);
+        *attenuation = self
+            .texture
+            .value(hit_record.u, hit_record.v, &hit_record.p);
         true
     }
 }

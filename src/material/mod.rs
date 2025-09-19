@@ -16,7 +16,7 @@ pub trait Material: Send + Sync {
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool;
-    
+
     fn emitted(&self, _u: f64, _v: f64, _p: &Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }

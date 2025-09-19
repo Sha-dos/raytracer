@@ -1,13 +1,13 @@
-use std::sync::Arc;
 use crate::aabb::AABB;
 use crate::color::Color;
-use crate::hittable::{Hittable, HitRecord};
+use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::material::isotropic::Isotropic;
 use crate::ray::Ray;
 use crate::texture::Texture;
 use crate::vector::Vector3;
 use rand::random_range;
+use std::sync::Arc;
 
 pub struct ConstantMedium {
     boundary: Arc<dyn Hittable>,
@@ -41,7 +41,7 @@ impl Hittable for ConstantMedium {
 
         // Use a very wide interval to find all intersections
         let mut interval_universe = Interval::new(f64::NEG_INFINITY, f64::INFINITY);
-        
+
         if !self.boundary.hit(ray, &mut interval_universe, &mut rec1) {
             return false;
         }
@@ -72,7 +72,7 @@ impl Hittable for ConstantMedium {
 
         let ray_length = ray.get_direction().length();
         let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-        
+
         // Calculate the distance to the scattering event using exponential distribution
         let hit_distance = self.neg_inv_density * random_range(0f64..1f64).ln();
 

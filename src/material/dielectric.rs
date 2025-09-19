@@ -1,12 +1,12 @@
-use std::sync::Arc;
 use crate::color::Color;
 use crate::hittable::HitRecord;
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture::Texture;
+use crate::texture::solid::SolidTexture;
 use crate::vector::{Point3, Vector3};
 use rand::random_range;
-use crate::texture::solid::SolidTexture;
-use crate::texture::Texture;
+use std::sync::Arc;
 
 pub struct Dielectric {
     ir: f64,
@@ -65,20 +65,28 @@ pub struct DiffuseLight {
 }
 
 impl DiffuseLight {
-    pub fn new (texture: Arc<dyn Texture>) -> Self {
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
         Self { texture }
     }
-    
-    pub fn from_color (color: Color) -> Self {
-        Self { texture: Arc::new(SolidTexture::new(color)) }
+
+    pub fn from_color(color: Color) -> Self {
+        Self {
+            texture: Arc::new(SolidTexture::new(color)),
+        }
     }
 }
 
 impl Material for DiffuseLight {
-    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+    fn scatter(
+        &self,
+        ray_in: &Ray,
+        hit_record: &HitRecord,
+        attenuation: &mut Color,
+        scattered: &mut Ray,
+    ) -> bool {
         false
     }
-    
+
     fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
         self.texture.value(u, v, p)
     }

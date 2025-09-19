@@ -93,7 +93,7 @@ impl Hittable for BVHNode {
         }
 
         let mut temp_rec = HitRecord::new();
-        let mut hit_left = self.left.hit(ray, t, &mut temp_rec);
+        let hit_left = self.left.hit(ray, t, &mut temp_rec);
 
         let mut right_t = t;
         if hit_left {

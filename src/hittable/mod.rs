@@ -1,10 +1,9 @@
 pub mod bvh_node;
 pub mod constant_medium;
-pub mod sphere;
 pub mod quad;
 pub mod rotate;
+pub mod sphere;
 
-use std::ops::Add;
 use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::material::{DefaultMaterial, Material};
@@ -126,7 +125,7 @@ impl Translate {
         Self {
             object,
             offset,
-            bbox
+            bbox,
         }
     }
 }

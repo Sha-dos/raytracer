@@ -1,8 +1,8 @@
-use std::fs::File;
-use std::io::{BufWriter, Write};
 use crate::interval::Interval;
 use crate::vector::Vector3;
 use anyhow::Result;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 
 pub type Color = Vector3;
 

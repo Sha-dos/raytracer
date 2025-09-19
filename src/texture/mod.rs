@@ -1,7 +1,7 @@
 pub mod checker;
 pub mod image;
-pub mod solid;
 pub mod noise;
+pub mod solid;
 
 use crate::color::Color;
 use crate::vector::Point3;

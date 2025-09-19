@@ -3,18 +3,18 @@ use crate::color::Color;
 use crate::hittable::HittableList;
 use crate::hittable::constant_medium::ConstantMedium;
 use crate::hittable::quad::{Quad, create_box};
-use crate::hittable::rotate::{RotateX, RotateY, RotateZ};
+use crate::hittable::rotate::RotateY;
 use crate::hittable::sphere::Sphere;
 use crate::image::Image;
 use crate::material::dielectric::{Dielectric, DiffuseLight};
 use crate::material::lambertian::Lambertian;
+use crate::material::metal::Metal;
 use crate::texture::checker::CheckerTexture;
 use crate::texture::image::ImageTexture;
 use crate::texture::noise::NoiseTexture;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use std::sync::Arc;
-use crate::material::metal::Metal;
 
 mod aabb;
 mod camera;
@@ -249,7 +249,6 @@ fn cornell_box() -> Result<()> {
         Vector3::new(0., 0., 105.),
         light.clone(),
     )));
-
 
     let tall_box = create_box(
         Point3::new(265., 0., 295.),

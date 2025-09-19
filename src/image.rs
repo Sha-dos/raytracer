@@ -1,4 +1,4 @@
-use image::{ImageBuffer, Rgb, RgbImage};
+use image::RgbImage;
 use std::env;
 use std::path::Path;
 

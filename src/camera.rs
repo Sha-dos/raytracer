@@ -1,19 +1,19 @@
 use crate::color::Color;
 use crate::hittable::{HitRecord, HittableList};
+use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use rand::random_range;
-use std::io::Write;
-use std::io::stdout;
 use std::fs::File;
 use std::io::BufWriter;
-use crate::interval::Interval;
+use std::io::Write;
+use std::io::stdout;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::{Duration, Instant};
 use std::thread;
+use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy)]
 struct CameraData {
@@ -142,8 +142,6 @@ impl Camera {
             return self.background;
         }
 
-
-
         let mut scattered = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0));
         let mut attenuation = Color::new(0.0, 0.0, 0.0);
         let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
@@ -168,7 +166,11 @@ impl Camera {
         );
         println!();
 
-        let pixels = Arc::new(Mutex::new(vec![Color::new(0.0, 0.0, 0.0); (self.image_width * self.image_height) as usize]));
+        let pixels = Arc::new(Mutex::new(vec![
+            Color::new(0.0, 0.0, 0.0);
+            (self.image_width * self.image_height)
+                as usize
+        ]));
         let world = Arc::new(world);
 
         let mut task_ranges = Vec::new();
@@ -187,9 +189,8 @@ impl Camera {
             actual_task_count += 1;
         }
 
-        let actual_rows_per_task: Vec<i32> = task_ranges.iter()
-            .map(|(start, end)| end - start)
-            .collect();
+        let actual_rows_per_task: Vec<i32> =
+            task_ranges.iter().map(|(start, end)| end - start).collect();
         let progress_tracker = Arc::new(ProgressTracker::new(
             actual_task_count as usize,
             actual_rows_per_task,
@@ -256,7 +257,8 @@ impl Camera {
         println!("\nWriting image to file...");
         let file = File::create("image.ppm")?;
         let mut writer = BufWriter::new(file);
-        writer.write(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes())?;
+        writer
+            .write(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes())?;
 
         let pixels_guard = pixels.lock().unwrap();
         for j in 0..self.image_height {
@@ -317,7 +319,8 @@ impl Camera {
 
                 for _ in 0..camera_data.samples_per_pixel {
                     let r = Self::get_ray_static(&camera_data, i as f64, j as f64);
-                    pixel_color += Self::color_static(&camera_data, &r, &world, camera_data.max_depth);
+                    pixel_color +=
+                        Self::color_static(&camera_data, &r, &world, camera_data.max_depth);
                 }
 
                 let final_color = camera_data.pixel_samples_scale * pixel_color;
@@ -384,7 +387,8 @@ impl Camera {
             return color_from_emission;
         }
 
-        let color_from_scatter = attenuation * Self::color_static(camera_data, &scattered, world, depth - 1);
+        let color_from_scatter =
+            attenuation * Self::color_static(camera_data, &scattered, world, depth - 1);
 
         color_from_emission + color_from_scatter
     }
@@ -401,8 +405,13 @@ struct ProgressTracker {
 
 impl ProgressTracker {
     fn new(task_count: usize, rows_per_task: Vec<i32>, image_width: i32) -> Self {
-        let task_progress = Arc::new((0..task_count).map(|_| AtomicUsize::new(0)).collect::<Vec<_>>());
-        let total_pixels_per_task = rows_per_task.iter()
+        let task_progress = Arc::new(
+            (0..task_count)
+                .map(|_| AtomicUsize::new(0))
+                .collect::<Vec<_>>(),
+        );
+        let total_pixels_per_task = rows_per_task
+            .iter()
             .map(|&rows| (rows * image_width) as usize)
             .collect();
 
@@ -428,20 +437,32 @@ impl ProgressTracker {
         for (task_id, progress) in self.task_progress.iter().enumerate() {
             let completed = progress.load(Ordering::Relaxed);
             let total = self.total_pixels_per_task[task_id];
-            let percentage = if total > 0 { (completed * 100) / total } else { 0 };
+            let percentage = if total > 0 {
+                (completed * 100) / total
+            } else {
+                0
+            };
 
             total_completed += completed;
             total_pixels += total;
 
-            if task_id > 0 { print!(" | "); }
+            if task_id > 0 {
+                print!(" | ");
+            }
             print!("T{}: {:3}%", task_id + 1, percentage);
         }
 
-        let overall_percentage = if total_pixels > 0 { (total_completed * 100) / total_pixels } else { 0 };
-        print!(" | Overall: {:3}% | {:02}:{:02}",
-               overall_percentage,
-               elapsed.as_secs() / 60,
-               elapsed.as_secs() % 60);
+        let overall_percentage = if total_pixels > 0 {
+            (total_completed * 100) / total_pixels
+        } else {
+            0
+        };
+        print!(
+            " | Overall: {:3}% | {:02}:{:02}",
+            overall_percentage,
+            elapsed.as_secs() / 60,
+            elapsed.as_secs() % 60
+        );
 
         stdout().flush().unwrap_or(());
     }
@@ -449,11 +470,19 @@ impl ProgressTracker {
     fn print_final(&self) {
         let total_time = self.start_time.elapsed();
         let total_pixels: usize = self.total_pixels_per_task.iter().sum();
-        let total_completed: usize = self.task_progress.iter().map(|p| p.load(Ordering::Relaxed)).sum();
+        let total_completed: usize = self
+            .task_progress
+            .iter()
+            .map(|p| p.load(Ordering::Relaxed))
+            .sum();
 
         println!("\nRendering complete!");
         println!("Total pixels: {}", total_pixels);
         println!("Pixels rendered: {}", total_completed);
-        println!("Elapsed time: {:02}:{:02}", total_time.as_secs() / 60, total_time.as_secs() % 60);
+        println!(
+            "Elapsed time: {:02}:{:02}",
+            total_time.as_secs() / 60,
+            total_time.as_secs() % 60
+        );
     }
 }

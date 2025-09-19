@@ -1,4 +1,4 @@
-use crate::vector::{Vector3, Point3};
+use crate::vector::{Point3, Vector3};
 use std::f64::consts::PI;
 
 #[derive(Clone, Copy, Debug)]
@@ -124,26 +124,28 @@ impl CompositeRotation {
     }
 
     pub fn transform_point(&self, point: &Point3) -> Point3 {
-        self.rotations.iter().fold(*point, |p, rotation| {
-            rotation.transform_point(&p)
-        })
+        self.rotations
+            .iter()
+            .fold(*point, |p, rotation| rotation.transform_point(&p))
     }
 
     pub fn transform_vector(&self, vector: &Vector3) -> Vector3 {
-        self.rotations.iter().fold(*vector, |v, rotation| {
-            rotation.transform_vector(&v)
-        })
+        self.rotations
+            .iter()
+            .fold(*vector, |v, rotation| rotation.transform_vector(&v))
     }
 
     pub fn inverse_transform_point(&self, point: &Point3) -> Point3 {
-        self.rotations.iter().rev().fold(*point, |p, rotation| {
-            rotation.inverse_transform_point(&p)
-        })
+        self.rotations
+            .iter()
+            .rev()
+            .fold(*point, |p, rotation| rotation.inverse_transform_point(&p))
     }
 
     pub fn inverse_transform_vector(&self, vector: &Vector3) -> Vector3 {
-        self.rotations.iter().rev().fold(*vector, |v, rotation| {
-            rotation.inverse_transform_vector(&v)
-        })
+        self.rotations
+            .iter()
+            .rev()
+            .fold(*vector, |v, rotation| rotation.inverse_transform_vector(&v))
     }
 }

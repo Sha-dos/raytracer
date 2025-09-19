@@ -97,7 +97,7 @@ impl Vector3 {
 }
 
 // Operator overloads and utility functions
-use std::ops::{Add, AddAssign, BitAnd, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 impl Neg for Vector3 {
     type Output = Self;
