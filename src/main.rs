@@ -1,17 +1,17 @@
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::hittable::HittableList;
+use crate::hittable::quad::Quad;
 use crate::hittable::sphere::Sphere;
 use crate::image::Image;
 use crate::material::dielectric::Dielectric;
 use crate::material::lambertian::Lambertian;
-use crate::material::metal::Metal;
 use crate::texture::checker::CheckerTexture;
 use crate::texture::image::ImageTexture;
+use crate::texture::noise::NoiseTexture;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use std::sync::Arc;
-use crate::texture::noise::NoiseTexture;
 
 mod aabb;
 mod camera;
@@ -20,18 +20,24 @@ mod hittable;
 mod image;
 mod interval;
 mod material;
+mod perlin;
 mod ray;
 mod texture;
 mod vector;
-mod perlin;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut world = HittableList::new();
+    match 2 {
+        1 => spheres().await?,
+        2 => quads().await?,
+        _ => (),
+    }
 
-    // auto earth_texture = make_shared<image_texture>("earthmap.jpg");
-    //     auto earth_surface = make_shared<lambertian>(earth_texture);
-    //     auto globe = make_shared<sphere>(point3(0,0,0), 2, earth_surface);
+    Ok(())
+}
+
+async fn spheres() -> Result<()> {
+    let mut world = HittableList::new();
 
     let material_ground = Arc::new(CheckerTexture::new_colors(
         0.32,
@@ -92,8 +98,41 @@ async fn main() -> Result<()> {
 
     camera.initialize();
 
-    camera.aspect_ratio = 16.0 / 9.0;
+    camera.render(world).await?;
+
+    Ok(())
+}
+
+async fn quads() -> Result<()> {
+    let mut world = HittableList::new();
+
+    let back_green = Arc::new(Lambertian::new(Color::new(0.2, 1.0, 0.2)));
+
+    let quad = Arc::new(Quad::new(
+        Point3::new(-2., -1., 1.),
+        Vector3::new(0., 2., 0.),
+        Vector3::new(0., 0., -2.),
+        back_green,
+    ));
+
+    world.add(quad);
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
     camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+
+    camera.vfov = 80.;
+    camera.lookfrom = Point3::new(-5., 0., 0.);
+    camera.lookat = Point3::new(0., 0., 0.);
+    camera.vup = Vector3::new(0., 1., 0.);
+
+    camera.defocus_angle = 1.0;
+    camera.focus_dist = 3.4;
+
+    camera.initialize();
 
     camera.render(world).await?;
 

@@ -1,5 +1,8 @@
 pub mod bvh_node;
 pub mod sphere;
+pub mod quad;
+
+pub use quad::Quad;
 
 use crate::aabb::AABB;
 use crate::interval::Interval;

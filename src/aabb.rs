@@ -10,6 +10,12 @@ pub struct AABB {
 
 impl AABB {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
+        let mut x = x;
+        let mut y = y;
+        let mut z = z;
+        
+        Self::pad_to_minimums(&mut x, &mut y, &mut z);
+        
         Self { x, y, z }
     }
 
@@ -109,5 +115,13 @@ impl AABB {
         } else {
             2
         }
+    }
+    
+    fn pad_to_minimums(x: &mut Interval, y: &mut Interval, z: &mut Interval) {
+        let delta = 0.0001;
+        
+        if x.size() < delta { *x = x.expand(delta); }
+        if y.size() < delta { *y = y.expand(delta); }
+        if z.size() < delta { *z = z.expand(delta); }
     }
 }

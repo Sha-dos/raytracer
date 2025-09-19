@@ -44,9 +44,9 @@ impl Perlin {
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
-                    let idx = self.perm_x[((i + di as i32) & 255) as usize] ^
-                              self.perm_y[((j + dj as i32) & 255) as usize] ^
-                              self.perm_z[((k + dk as i32) & 255) as usize];
+                    let idx = (self.perm_x[((i + di as i32) & 255) as usize] +
+                               self.perm_y[((j + dj as i32) & 255) as usize] +
+                               self.perm_z[((k + dk as i32) & 255) as usize]) & 255;
                     c[di][dj][dk] = self.rand_floats[idx];
                 }
             }
