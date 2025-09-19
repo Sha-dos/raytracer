@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::hittable::HittableList;
+use crate::hittable::{HitRecord, HittableList};
 use crate::ray::Ray;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
@@ -8,6 +8,7 @@ use std::io::Write;
 use std::io::stdout;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
+use crate::interval::Interval;
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -20,6 +21,7 @@ pub struct Camera {
     pub vup: Vector3,       // Camera-relative "up" direction
     pub defocus_angle: f64, // Variation angle of rays through each pixel
     pub focus_dist: f64,    // Distance to perfect focus plane
+    pub background: Color,
 
     image_height: i32,
     pixel_samples_scale: f64,
@@ -46,7 +48,8 @@ impl Camera {
             lookat: Point3::new(0.0, 0.0, -1.0),
             vup: Vector3::new(0.0, 1.0, 0.0),
             defocus_angle: 0.0,
-            focus_dist: 0.0,
+            focus_dist: 10.0,
+            background: Color::new(1.0, 1.0, 1.0),
 
             // These will be calculated in initialize()
             image_height: 0,
@@ -104,6 +107,42 @@ impl Camera {
         self.defocus_v = self.v * defocus_radius;
     }
 
+    fn color(&self, r: &Ray, world: &HittableList, depth: i32) -> Color {
+        // If we've exceeded the ray bounce limit, no more light is gathered
+        if depth <= 0 {
+            return Color::new(0.0, 0.0, 0.0);
+        }
+
+        let mut rec = HitRecord::new();
+
+        if !world.hit(r, Interval::new(0.001, f64::INFINITY), &mut rec) {
+            return self.background;
+        }
+        
+        // ray scattered;
+        //         color attenuation;
+        //         color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+        // 
+        //         if (!rec.mat->scatter(r, rec, attenuation, scattered))
+        //             return color_from_emission;
+        // 
+        //         color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+        // 
+        //         return color_from_emission + color_from_scatter;
+
+        let mut scattered = Ray::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0));
+        let mut attenuation = Color::new(0.0, 0.0, 0.0);
+        let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
+        
+        if !rec.mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+            return color_from_emission;
+        }
+        
+        let color_from_scatter = attenuation * self.color(&scattered, world, depth - 1);
+        
+        color_from_emission + color_from_scatter
+    }
+
     pub async fn render(&mut self, world: HittableList) -> Result<()> {
         self.initialize();
 
@@ -121,7 +160,7 @@ impl Camera {
 
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i as f64, j as f64);
-                    pixel_color += r.color(&world, self.max_depth);
+                    pixel_color += self.color(&r, &world, self.max_depth);
                 }
 
                 (self.pixel_samples_scale * pixel_color)

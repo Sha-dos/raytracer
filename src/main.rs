@@ -4,7 +4,7 @@ use crate::hittable::HittableList;
 use crate::hittable::quad::Quad;
 use crate::hittable::sphere::Sphere;
 use crate::image::Image;
-use crate::material::dielectric::Dielectric;
+use crate::material::dielectric::{Dielectric, DiffuseLight};
 use crate::material::lambertian::Lambertian;
 use crate::texture::checker::CheckerTexture;
 use crate::texture::image::ImageTexture;
@@ -12,6 +12,7 @@ use crate::texture::noise::NoiseTexture;
 use crate::vector::{Point3, Vector3};
 use anyhow::Result;
 use std::sync::Arc;
+use crate::material::metal::Metal;
 
 mod aabb;
 mod camera;
@@ -27,9 +28,10 @@ mod vector;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    match 2 {
+    match 3 {
         1 => spheres().await?,
         2 => quads().await?,
+        3 => simple_light().await?,
         _ => (),
     }
 
@@ -123,14 +125,64 @@ async fn quads() -> Result<()> {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.background = Color::new(0.70, 0.80, 1.00);
 
     camera.vfov = 80.;
     camera.lookfrom = Point3::new(-5., 0., 0.);
     camera.lookat = Point3::new(0., 0., 0.);
     camera.vup = Vector3::new(0., 1., 0.);
 
-    camera.defocus_angle = 1.0;
-    camera.focus_dist = 3.4;
+    // camera.defocus_angle = 1.0;
+    // camera.focus_dist = 3.4;
+
+    camera.initialize();
+
+    camera.render(world).await?;
+
+    Ok(())
+}
+
+async fn simple_light() -> Result<()> {
+    let mut world = HittableList::new();
+
+    let texture = Arc::new(NoiseTexture::new(5.));
+    let material_ground = Arc::new(Lambertian::new_texture(texture));
+
+    let material_ball = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.9));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(4., 4., 4.)));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(-500., -4., -500.),
+        Vector3::new(1000., 0., 0.),
+        Vector3::new(0., 0., 1000.),
+        material_ground,
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 0., 0.),
+        2.,
+        material_ball,
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(-1., 3., -2.),
+        Vector3::new(2., 0., 0.),
+        Vector3::new(0., 0., 2.),
+        light,
+    )));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+    camera.background = Color::new(0., 0., 0.);
+
+    camera.vfov = 80.;
+    camera.lookfrom = Point3::new(-5., 0., 0.);
+    camera.lookat = Point3::new(0., 0., 0.);
+    camera.vup = Vector3::new(0., 1., 0.);
 
     camera.initialize();
 
